@@ -1,0 +1,20 @@
+# ROS 관련 파일
+build/
+devel/
+logs/
+.catkin_tools/
+
+
+
+
+# 로그 파일
+*.log
+
+# 백업 파일
+*~
+*.bak
+
+# 기타 불필요한 파일
+*.swp
+*.swo
+
