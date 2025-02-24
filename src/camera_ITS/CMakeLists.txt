@@ -8,10 +8,36 @@ project(camera_ITS)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
   roscpp
   rospy
+  std_msgs
+  sensor_msgs
 )
 
+
+
+add_message_files(
+   FILES
+
+   Yolo_bbox.msg
+   Yolo_bbox_arr.msg
+
+   
+)
+
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  
+)
+
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES seojin_pkg
+ CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
