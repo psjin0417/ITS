@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/autonav/ERP_2024/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/autonav/ERP_2024/src/ERP2024/include/**",
+        "/home/autonav/ERP_2024/src/Lidar_ERP_2024/include/**",
+        "/home/autonav/ERP_2024/src/erp42_serial/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

@@ -1,0 +1,29 @@
+2023 아이오닉 5
+
+LiDAR HDL-32 
+
+x 3.5 
+y 0.0 
+z 0.8
+
+launch file 중 LiDAR_MORAI.launch에서
+
+ROI parameter : 아래 부분 변경(선택사항)
+<!--ROI parameter-->
+    <param name="switch_ROI" value="true"/>
+    <param name="ROI_xMin" value="-1"/>
+    <param name="ROI_xMax" value="15"/><!--15-->
+    <param name="ROI_yMin" value="-5.5"/>
+    <param name="ROI_yMax" value="5.5"/>
+    <param name="ROI_zMin" value="-2"/> <!-- ransac auto off (when up to ROI_zMin > -0.2) -->
+    <param name="ROI_zMax" value="3"/> <!-- 3-->
+
+
+물체 병합 파라미터 : 아래 부분 변경(선택사항)
+<param name="REMOVE_FACTOR" value="1.5"/>
+
+1.5m거리에 있는 물체는 하나로 병합한다는 의미
+
+topic은 /4_Clustering_OMA 받으면 됌(object_msg_arr)
+
+

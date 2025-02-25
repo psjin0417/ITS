@@ -1,0 +1,145 @@
+<launch>
+  <!-- <node pkg="LiDAR" type="Lidar_UDP" name="UDP_node" respawn="true" output="screen">
+    <param name="UDP_IP" value="192.168.1.100"/> 
+    <param name="Port_Num" value="2368"/> 
+    <param name="BUFFER_SIZE" value="1080"/>  
+    <param name="VLP16" value="false"/>
+  </node> -->
+  <!-- Hesai 165.246.1.100/ Ouster 192.168.100.23-->
+  <!--Hesai 2368 / Ouster : 7502-->
+  <!--Hesai 1080 / Ouster 6464-->
+ <node pkg="LiDAR" type="Lidar_GE" name="GE_node" respawn="true" output="screen">
+    <param name="Sensor_Hesai" value="true"/><!-- If hesai or ouster , Sensor_Hesai is true-->
+    <param name="Sensor_V16" value="false"/>
+    <param name="GE_Z" value="-0.5"/>  <!-- H : -0.7 / V : -1.0 -->
+    <param name="GE_Z_re" value="-0.7"/>
+    <param name="GE_slope" value="0.5"/>  <!--0.5-->
+    <param name="GE_delta_slope" value="0.3"/>    <!-- H : 0.3 / V : 0.2-->
+  </node>
+
+ <node pkg="LiDAR" type="Lidar_Lane" name="Lane_node" respawn="true" output="screen">
+  <param name = "switch_lane" value="false"/>
+  <param name = "switch_lane_tunnel" value="false"/>
+  <param name = "intensity_min" value="50"/>
+  <param name = "intensity_max" value="255"/>
+  <!--tunnel and parking-->
+  <param name = "intensity_min_1" value="200"/>
+  <param name = "intensity_max_1" value="255"/>
+  <!--avoid small-->
+  <param name = "intensity_min_2" value="50"/>
+  <param name = "intensity_max_2" value="255"/>
+</node>
+<!--Kcity mid lane 200/255-->
+<!--Siheung mid lane 50/255-->
+  <node pkg="LiDAR" type="Lidar_ROI" name="ROI_node" respawn="true" output="screen">
+  <!--패키지 명, type => excutable file, cpp파일에 ROI_node로 되어있음-->
+    <!--ROI parameter-->
+    <param name="switch_ROI" value="true"/>
+    <param name="ROI_xMin" value="-2.0"/>
+    <param name="ROI_xMax" value="15"/><!--15-->
+    <param name="ROI_yMin" value="-5.0"/>
+    <param name="ROI_yMax" value="5.0"/>
+    <param name="ROI_zMin" value="-2"/> <!-- ransac auto off (when up to ROI_zMin > -0.2) -->
+    <param name="ROI_zMax" value="2"/> <!-- 2-->
+    <param name="ylimit" value="0.6"/>
+    <!-- signal -->
+    <param name="ROI_zMin_2" value="-0.5"/> <!-- 표지판이 지면으로부터 0.88m (라이다 0.83m에 위치)--> 
+    <param name="ROI_zMax_2" value="1.5"/>
+    <param name="ROI_xMax_2" value="20"/>
+    <param name="ROI_yMin_2" value="-10"/>
+    <param name="ROI_yMax_2" value="10"/>
+
+    <param name="ROI_xMax_4" value="30"/>
+    <param name="ROI_yMin_4" value="-20"/>
+    <param name="ROI_yMax_4" value="20"/>
+
+    <param name="ROI_xMin_8" value="-0.5"/>
+    <param name="ROI_xMax_8" value="12"/> <!-- 12 -->
+    <param name="ROI_yMin_8" value="-3.0"/> <!-- -5.5 -->
+    <param name="ROI_yMax_8" value="3.0"/> <!-- 5.5 -->
+    <param name="ROI_zMax_8" value="0.8"/> <!-- 0.8 -->
+
+    <param name="ROI_xMin_re" value="-1"/>
+    <param name="ROI_xMax_re" value="15"/><!--15-->
+    <param name="ROI_yMin_re" value="-5.5"/>
+    <param name="ROI_yMax_re" value="5.5"/>
+    <param name="ROI_zMin_re" value="-2"/>
+    <param name="ROI_zMax_re" value="2"/>
+  </node>
+
+  <node pkg="LiDAR" type="Lidar_ransac" name="ransac_node" respawn="true" output="screen">
+    <!--ransac parameter-->
+    <param name="switch_UpSampling" value="false"/>
+    <param name="switch_RanSaC" value="false"/>
+    <param name="ransac_distanceThreshold" value="0.85"/> <!--1-->
+  </node>
+
+  <node pkg="LiDAR" type="Lidar_Clustering" name="Clustering_node" respawn="true" output="screen">
+	
+    <!--EuclidClustering parameter-->
+    <param name="switch_Euclid" value="false"/>
+    <param name="EC_eps" value="0.5"/>
+    <param name="EC_MinClusterSize" value="5"/>
+    <param name="EC_MaxClusterSize" value="10000"/>
+
+    <!--DBSCANclustering parameter-->
+    <param name="switch_DBscan" value="true"/>
+    <param name="DBscan_eps" value="0.5"/>
+    <param name="DBscan_minPts" value="3"/>
+    <param name="DB_MinClusterSize" value="3"/><!--5-->
+    <param name="DB_MaxClusterSize" value="10000"/>
+
+    <!-- signal -->
+    <!-- 1 : Small object : PE_DRUM -->
+    <param name="DBscan_eps_1" value="0.5"/>
+    <param name="DBscan_minPts_1" value="3"/>
+    <param name="DB_MinClusterSize_1" value="5"/>
+    <!-- 2 : delievery -->
+    <param name="DBscan_eps_2" value="0.35"/>
+    <param name="DBscan_minPts_2" value="3"/>
+    <param name="DB_MinClusterSize_2" value="5"/>
+    <!-- 3 : Big object : Car  -->
+    <param name="DBscan_eps_3" value="0.5"/>
+    <param name="DBscan_minPts_3" value="3"/>
+    <param name="DB_MinClusterSize_3" value="5"/>
+    <!-- 4 : tunnel -->
+    <param name="DBscan_eps_4" value="0.5"/>
+    <param name="DBscan_minPts_4" value="3"/>
+    <param name="DB_MinClusterSize_4" value="5"/>  <!-- 5 -->
+    <!-- 8 : Cone -->
+    <param name="DBscan_eps_8" value="0.35"/>
+    <param name="DBscan_minPts_8" value="3"/>      <!-- 3 -->
+    <param name="DB_MinClusterSize_8" value="1"/>  <!-- 3 -->
+
+    <param name="DBscan_eps_re" value="0.5"/>
+    <param name="DBscan_minPts_re" value="3"/>
+    <param name="DB_MinClusterSize_re" value="3"/>
+
+
+    <param name="REMOVE_FACTOR_1" value="0.3"/>
+    <param name="REMOVE_FACTOR_3" value="1.1"/>
+    <param name="REMOVE_FACTOR_4" value="0.3"/>
+    <param name="REMOVE_FACTOR_8" value="0.1"/> <!-- 라바콘 한개는 그대로 잡되, 잔디같은 뭉칠 수 있는애들은 TC필터로 거르기 위함. 0.4가 라바콘 두개 딱 붙였을때 수치임. -->
+    <param name="REMOVE_FACTOR_re" value="0.3"/>
+
+    <!--NoiseFiltering parameter-->
+    <param name="switch_NoiseFiltering" value="false"/>
+
+    <!--Filter on/off-->    
+    <param name="switch_jiwon_filter" value="true"/>
+    <param name="switch_Surround_filter" value="false"/>
+    <param name="switch_Cone_filter" value="false"/>
+    <param name="switch_Drum_filter" value="false"/>
+    <param name="switch_Delievery_filter" value="false"/>
+    <param name="switch_find_Rectangle" value="false"/>
+
+    <!--jiwonFilter parameter-->
+    <param name="REMOVE_FACTOR" value="1.0"/>
+
+    <!--Surround Filter parameter-->
+    <param name="Surround_Z_ROI" value="-0.1"/> <!--mainly for 연석  -0.5 / for 작은 봉 -0.1 -->
+  </node>
+
+  <node pkg="LiDAR" type="line_visualizer" name="line_visulaizer" respawn="true" output="screen"></node>
+
+</launch>

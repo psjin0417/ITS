@@ -1,0 +1,19 @@
+{
+    "files.associations": {
+        "array": "cpp",
+        "bitset": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp"
+    },
+    "python.autoComplete.extraPaths": [
+        "/home/g0/ha/ERP_2024/devel/lib/python3/dist-packages",
+        "/home/g0/catkin_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/g0/ha/ERP_2024/devel/lib/python3/dist-packages",
+        "/home/g0/catkin_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ]
+}
