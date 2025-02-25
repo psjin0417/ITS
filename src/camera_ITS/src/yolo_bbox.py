@@ -3,8 +3,9 @@ import cv2
 import rospy
 import numpy as np
 from sensor_msgs.msg import CompressedImage
-from seojin_pkg.msg import Yolo_bbox_arr, Yolo_bbox
+from camera_ITS.msg import Yolo_bbox_arr, Yolo_bbox
 from ultralytics import YOLO
+from cv_bridge import CvBridgeError
 import math 
 
     
