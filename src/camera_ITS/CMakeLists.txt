@@ -22,6 +22,9 @@ add_message_files(
 
    Yolo_bbox.msg
    Yolo_bbox_arr.msg
+   Coordinate.msg
+   object.msg
+   Yolo_object_arr.msg
 
    
 )
