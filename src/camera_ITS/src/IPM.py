@@ -43,9 +43,9 @@ class Fusion:
                          [world_x_min[i], world_y_min[i], 0, 1]])
             self.world_pts.append(arr_world_pts)
 
-        ## 
-        Intrinsic_parameter_90 = np.array([[   428   ,      0    ,    510   ,0],
-                                            [     0    ,    428   ,     360   ,0],
+        ## 100 ->428
+        Intrinsic_parameter_90 = np.array([[   357   ,      0    ,    510   ,0],
+                                            [     0    ,    357   ,     360   ,0],
                                             [     0    ,      0    ,      1    ,0]],dtype=np.float64)      
         Intrinsic_parameter_130 = np.array([[   238   ,      0    ,    510   ,0],
                                             [     0    ,    238   ,     360   ,0],
@@ -85,6 +85,14 @@ class Fusion:
         # canvus
         self.canvas_height, self.canvas_width = 900, 700
 
+        # flag 
+        self.front_flag = False
+        self.left_flag = False
+        self.right_flag = False
+        self.front_obj_arr = []
+        self.left_obj_arr = []
+        self.right_obj_arr = []
+
         ## IMU 
         self.init_pitch = None
         self.init_roll = None
@@ -122,9 +130,10 @@ class Fusion:
             pitch = self.pitch
             roll = self.roll
             self.st_BGRImg=img_bgr
-            self.front_dst = self.gen_BEV_origin(0,img_bgr, 686, 686, pitch, roll )
-            self.front_dst_cal = self.gen_BEV(0,img_bgr, 686, 686, pitch, roll )
-            
+            if self.front_flag:
+                self.draw_obj(0, img_bgr, self.front_obj_arr)
+            self.front_dst_cal = self.gen_BEV(0,img_bgr, 686, 686, pitch, roll)
+
     def callback_right_Image(self, msg):
         
         np_arr=np.frombuffer(msg.data,np.uint8)
@@ -133,8 +142,11 @@ class Fusion:
             pitch = self.pitch
             roll = self.roll
             self.st_right_Img=img_bgr
-            self.right_dst_cal = self.gen_BEV(2,img_bgr, self.dst_width, self.dst_height, pitch, roll )
-            self.right_dst = self.gen_BEV_origin(2,img_bgr, self.dst_width, self.dst_height, pitch, roll )
+            if self.right_flag:
+                self.draw_obj(2, img_bgr, self.right_obj_arr)
+            self.right_dst_cal = self.gen_BEV(2,img_bgr, self.dst_width, self.dst_height, pitch, roll)
+
+            #self.right_dst = self.gen_BEV_origin(2,img_bgr, self.dst_width, self.dst_height)
 
 
     def callback_left_Image(self, msg):
@@ -144,8 +156,11 @@ class Fusion:
             pitch = self.pitch
             roll = self.roll
             self.st_left_Img=img_bgr
-            self.left_dst_cal = self.gen_BEV(1,img_bgr, self.dst_width, self.dst_height, pitch, roll )
-            self.left_dst= self.gen_BEV_origin(1,img_bgr, self.dst_width, self.dst_height, pitch, roll )
+            if self.left_flag:
+                self.draw_obj(1, img_bgr, self.left_obj_arr)
+            self.left_dst_cal = self.gen_BEV(1,img_bgr, self.dst_width, self.dst_height, pitch, roll)
+
+            #self.left_dst= self.gen_BEV_origin(1,img_bgr, self.dst_width, self.dst_height)
 
     def callback_Imu(self, msg):
         quaternion = (
@@ -163,8 +178,66 @@ class Fusion:
         self.roll = roll
 
     def callback_YOLO(self, msg):
+        tmp_front_flag = False
+        tmp_left_flag = False
+        tmp_right_flag = False
+        front_obj_arr = []
+        left_obj_arr = []
+        right_obj_arr = []
+        
         for obj in msg.data:
-            self.cal_dist(obj.CamNum, obj.BB.x, obj.BB.y)
+
+            #self.cal_dist(obj.CamNum, obj.BB.x, obj.BB.y)
+
+            contour_points = []
+            if obj.CamNum == 0:
+                tmp_front_flag = True
+                for point in obj.contour.points:  # Polygon 객체의 points 리스트
+                    contour_points.append([int(point.x)*2, int(point.y)*2])
+
+                    # 바운딩 박스 좌표 추출 (BB: Coordinate 타입 가정)
+                    bb_x = obj.BB.x
+                    bb_y = obj.BB.y
+
+                    # NumPy 배열로 변환
+                    contour_array = np.array([contour_points], dtype=np.int32)
+                front_obj_arr.append([obj.w , obj.BB.x, obj.BB.y, contour_array])
+
+            elif obj.CamNum == 1:
+                tmp_left_flag = True
+                for point in obj.contour.points:  # Polygon 객체의 points 리스트
+                    contour_points.append([int(point.x)*2, int(point.y)*2])
+
+                    # 바운딩 박스 좌표 추출 (BB: Coordinate 타입 가정)
+                    bb_x = obj.BB.x
+                    bb_y = obj.BB.y
+
+                    # NumPy 배열로 변환
+                    contour_array = np.array([contour_points], dtype=np.int32)
+
+                left_obj_arr.append([obj.w , obj.BB.x, obj.BB.y, contour_array])
+
+            elif obj.CamNum == 2:
+                tmp_right_flag = True
+                for point in obj.contour.points:  # Polygon 객체의 points 리스트
+                    contour_points.append([int(point.x)*2, int(point.y)*2])
+
+                    # 바운딩 박스 좌표 추출 (BB: Coordinate 타입 가정)
+                    bb_x = obj.BB.x
+                    bb_y = obj.BB.y
+
+                    # NumPy 배열로 변환
+                    contour_array = np.array([contour_points], dtype=np.int32)
+
+                right_obj_arr.append([obj.w , obj.BB.x, obj.BB.y, contour_array])
+        
+        self.front_flag = tmp_front_flag
+        self.left_flag = tmp_left_flag
+        self.right_flag = tmp_right_flag
+        self.front_obj_arr = front_obj_arr
+        self.left_obj_arr = left_obj_arr
+        self.right_obj_arr = right_obj_arr
+
 
     def image_to_world(self, K, R, t, uv):
         # 이미지 좌표 (u, v)
@@ -258,10 +331,22 @@ class Fusion:
 
         pts1 = np.float32(pts1)
         perspective_mtrx = cv2.getPerspectiveTransform(pts1, self.arr_pts2[i])
-
         return cv2.warpPerspective(img, perspective_mtrx, (width,height))
+        
+        # if contour_array == 0:
+        #     return cv2.warpPerspective(img, perspective_mtrx, (width,height))
+
+        # else:
+        #     for idx, object in enumerate(contour_array):
+        #         contour = object[3].reshape(-1, 1, 2)  # (N, 1, 2) 형태로 보정
+        #         transformed_pts = cv2.perspectiveTransform(contour, perspective_mtrx)
+        #         transformed_pts = transformed_pts.astype(np.int32)
+        #         transformed_pts[:, :, 0] = (transformed_pts[:, :, 0] * width/self.width)
+        #         transformed_pts[:, :, 1] = (transformed_pts[:, :, 1] * height/self.height)
+        #         Bev = cv2.warpPerspective(img, perspective_mtrx, (width,height))
+        #         return cv2.fillPoly(Bev, transformed_pts, color=(0, 255, 255))
     
-    def gen_BEV_origin(self, i, img, width, height, pitch, roll):
+    def gen_BEV_origin(self, i, img, width, height):
         A_inv = np.linalg.pinv(self.FinalMatrix[i])
         pts1 = []
         for k,pt in enumerate(self.world_pts[i]):
@@ -273,20 +358,59 @@ class Fusion:
         perspective_mtrx = cv2.getPerspectiveTransform(pts1, self.arr_pts2[i])
 
         return cv2.warpPerspective(img, perspective_mtrx, (width,height))
-    
-    def cal_dist(self, i,image_x, image_y):
-        
-        x, y = sp.symbols('x y')
-        z = (x*math.tan(self.pitch - self.init_pitch)) - y*math.tan(self.roll - self.init_roll)
-        world_pt = sp.Matrix([[x, y, z, 1]]) 
-        FinalMatrix_sp = sp.Matrix(self.FinalMatrix[i])
-        world2Camera = FinalMatrix_sp * world_pt.T
 
-        eq1 = sp.Eq(world2Camera[0] / world2Camera[2], image_x)
-        eq2 = sp.Eq(world2Camera[1] / world2Camera[2], image_y)
-        solution = sp.solve((eq1, eq2), (x, y))
-        distance = sp.sqrt(solution[x]**2 + solution[y]**2)
-        print(" 거리:", distance)
+    def cal_dist(self, i, image_x, image_y):
+        # 불변 값 미리 계산 (클래스 초기화 시 계산 가능하면 더 좋음)
+        tan_pitch = np.tan(self.pitch - self.init_pitch)
+        tan_roll = np.tan(self.roll - self.init_roll)
+        
+        # FinalMatrix는 NumPy 배열로 가정
+        FinalMatrix = np.array(self.FinalMatrix[i])
+        
+        # 연립방정식 계수 설정
+        # z = x * tan_pitch - y * tan_roll
+        # world2Camera = FinalMatrix * [x, y, z, 1].T
+        # image_x = world2Camera[0] / world2Camera[2]
+        # image_y = world2Camera[1] / world2Camera[2]
+        
+        # 행렬 A와 벡터 b로 변환
+        A = np.array([
+            [FinalMatrix[0, 0] - image_x * FinalMatrix[2, 0] + tan_pitch * (FinalMatrix[0, 2] - image_x * FinalMatrix[2, 2]),
+            FinalMatrix[0, 1] - image_x * FinalMatrix[2, 1] - tan_roll * (FinalMatrix[0, 2] - image_x * FinalMatrix[2, 2])],
+            [FinalMatrix[1, 0] - image_y * FinalMatrix[2, 0] + tan_pitch * (FinalMatrix[1, 2] - image_y * FinalMatrix[2, 2]),
+            FinalMatrix[1, 1] - image_y * FinalMatrix[2, 1] - tan_roll * (FinalMatrix[1, 2] - image_y * FinalMatrix[2, 2])]
+        ])
+        
+        b = np.array([
+            -(FinalMatrix[0, 3] - image_x * FinalMatrix[2, 3]),
+            -(FinalMatrix[1, 3] - image_y * FinalMatrix[2, 3])
+        ])
+        
+        # x, y 계산
+        xy = np.linalg.solve(A, b)
+        
+        x, y = xy[0], xy[1]
+        
+        # 거리 계산
+        distance = np.sqrt(x**2 + y**2)
+        print("거리:", distance)
+        return distance
+    
+    def draw_obj(self, i,image, object_arr):
+        for idx, object in enumerate(object_arr):
+            dist = self.cal_dist( i, int(object[1]), int(object[2]))
+            if dist < 21:
+                cv2.line(image, 
+                (int(object[1] - object[0]/2), int(object[2])), 
+                (int(object[1] + object[0]/2), int(object[2])), 
+                (0, 0, 255), 
+                5)
+                cv2.polylines(image, object[3], isClosed=True, color=(255, 255, 255), thickness=3, lineType=cv2.LINE_AA)
+                #smooth_pts = self.smooth_points(object[3], 5)
+                cv2.fillPoly(image, object[3], color=(50, 50, 50))
+                #cv2.drawContours(image, object[3], -1, (0, 0, 255), 2)
+                cv2.circle(image, (int(object[1]) , int(object[2])), 5, (0, 0, 255), -1)  
+            
 
     def WholeProcessiong(self):
 
@@ -314,7 +438,8 @@ class Fusion:
             positions = [(300, 2), (300, 384), (0,0),(670,288)]
             
             # 보정O
-            canvas1 = np.zeros((self.canvas_height, self.canvas_width, 3), dtype=np.uint8)
+            # 회색 배경 (BGR: 128, 128, 128)으로 초기화
+            canvas1 = np.full((self.canvas_height, self.canvas_width, 3), (128, 128, 128), dtype=np.uint8)
             idx = 0
             for img, (y, x) in zip([tmp_left_dst_cal, tmp_right_dst_cal, rgba_image, self.car_img], positions):
                 idx += 1
@@ -334,21 +459,21 @@ class Fusion:
             canvas1 = canvas1[0:840, 0:650]
 
             # 보정x 
-            canvas2 = np.zeros((self.canvas_height, self.canvas_width, 3), dtype=np.uint8)
-            idx = 0
-            for img, (y, x) in zip([self.left_dst, self.right_dst, self.front_dst], positions):
-                idx += 1
-                h, w, _ = img.shape
-                #print(y,x,h,w)
-                if idx == 3:
-                    #canvas[y:y+h, x:x+w] = cv2.addWeighted(canvas[y:y+h, x:x+w], 0.8, img, 0.2, 0)
-                    canvas2[y:y+h, x:x+w] = cv2.bitwise_or(canvas2[y:y+h, x:x+w], img)  # 해당 위치에 이미지 배치
-                    canvas2 = np.clip(canvas2, 0, 250)
-                else:
-                    canvas2[y:y+h, x:x+w] = img
+            # canvas2 = np.zeros((self.canvas_height, self.canvas_width, 3), dtype=np.uint8)
+            # idx = 0
+            # for img, (y, x) in zip([self.left_dst, self.right_dst, self.front_dst], positions):
+            #     idx += 1
+            #     h, w, _ = img.shape
+            #     #print(y,x,h,w)
+            #     if idx == 3:
+            #         #canvas[y:y+h, x:x+w] = cv2.addWeighted(canvas[y:y+h, x:x+w], 0.8, img, 0.2, 0)
+            #         canvas2[y:y+h, x:x+w] = cv2.bitwise_or(canvas2[y:y+h, x:x+w], img)  # 해당 위치에 이미지 배치
+            #         canvas2 = np.clip(canvas2, 0, 250)
+            #     else:
+            #         canvas2[y:y+h, x:x+w] = img
                 
             cv2.imshow('Merged Image', canvas1)
-            cv2.imshow('Merged Image no cal', canvas2)
+            #cv2.imshow('Merged Image no cal', canvas2)
 
             cv2.waitKey(1)
             self.rate.sleep()

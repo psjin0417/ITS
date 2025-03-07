@@ -13,19 +13,22 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   sensor_msgs
+  pcl_ros
+  geometry_msgs
 )
 
 
 
 add_message_files(
    FILES
-
+   LaneInfo.msg
+   TrafficLight.msg
+   SpeedSign.msg
    Yolo_bbox.msg
    Yolo_bbox_arr.msg
    Coordinate.msg
    object.msg
    Yolo_object_arr.msg
-
    
 )
 
@@ -33,13 +36,13 @@ add_message_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
-  
+  geometry_msgs
 )
 
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES seojin_pkg
- CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+ CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs message_runtime
 )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
